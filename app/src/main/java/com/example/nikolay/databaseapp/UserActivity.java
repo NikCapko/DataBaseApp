@@ -1,8 +1,6 @@
 package com.example.nikolay.databaseapp;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -13,21 +11,16 @@ import android.widget.Toast;
 
 public class UserActivity extends AppCompatActivity {
 
-    DatabaseHelper sqlHelper;
-    SQLiteDatabase db;
-    Cursor userCursor;
-    long userId = 0;
+    private DatabaseHelper sqlHelper;
+    private SQLiteDatabase db;
+    private long userId = 0;
 
-    EditText etName;
-    EditText etLastname;
-    EditText etYear;
+    private EditText etName;
+    private EditText etLastname;
+    private EditText etYear;
 
-    Button btnSave;
-    Button btnDel;
-
-    Button btnAdd;
-    String name;
-    String year;
+    private Button btnSave;
+    private Button btnDel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,38 +43,34 @@ public class UserActivity extends AppCompatActivity {
         }
 
         if (userId > 0) {
-            userCursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE + " WHERE " +
-                    DatabaseHelper.COLUMN_ID + "=?", new String[]{String.valueOf(userId)});
-            userCursor.moveToFirst();
-            etName.setText(userCursor.getString(1));
-            etLastname.setText(userCursor.getString(2));
-            etYear.setText(String.valueOf(userCursor.getInt(3)));
-            userCursor.close();
+            etName.setText(Query.selectById(db, userId)[0]);
+            etLastname.setText(Query.selectById(db, userId)[1]);
+            etYear.setText(String.valueOf(Query.selectById(db, userId)[2]));
         } else {
             btnDel.setVisibility(View.GONE);
         }
     }
 
     public void btnSaveClick(View view) {
-        ContentValues cv = new ContentValues();
         try {
-            cv.put(DatabaseHelper.COLUMN_NAME, etName.getText().toString());
-            cv.put(DatabaseHelper.COLUMN_LASTNAME, etLastname.getText().toString());
-            cv.put(DatabaseHelper.COLUMN_YEAR, Integer.parseInt(etYear.getText().toString()));
+            String[] params = new String[]{
+                    etName.getText().toString(),
+                    etLastname.getText().toString(),
+                    etYear.getText().toString()};
+
+            if (userId > 0) {
+                Query.updateById(params, db, userId);
+            } else {
+                Query.insertById(params, db, userId);
+            }
+            close();
         } catch (Exception ex) {
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
-            return;
         }
-        if (userId > 0) {
-            db.update(DatabaseHelper.TABLE, cv, DatabaseHelper.COLUMN_ID + "=" + String.valueOf(userId), null);
-        } else {
-            db.insert(DatabaseHelper.TABLE, null, cv);
-        }
-        close();
     }
 
     public void btnDelClick(View view) {
-        db.delete(DatabaseHelper.TABLE, DatabaseHelper.COLUMN_ID + "=?", new String[]{String.valueOf(userId)});
+        Query.deleteById(db, userId);
         close();
     }
 
