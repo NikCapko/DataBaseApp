@@ -39,7 +39,7 @@ public class UserActivity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            userId = (long) extras.getLong("id");
+            userId = (long) extras.getLong(MainActivity.USER_ID);
         }
 
         if (userId > 0) {

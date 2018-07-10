@@ -1,10 +1,11 @@
 package com.example.nikolay.databaseapp;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.widget.SimpleCursorAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Query {
     public static String[] selectById(SQLiteDatabase db, long userId) {
@@ -20,17 +21,25 @@ public class Query {
         db.delete(DatabaseHelper.TABLE, DatabaseHelper.COLUMN_ID + "=?", new String[]{String.valueOf(userId)});
     }
 
-    public static SimpleCursorAdapter selectAll(SQLiteDatabase db, DatabaseHelper databaseHelper, Context ctx) {
+    public static List selectAll(SQLiteDatabase db, DatabaseHelper databaseHelper) {
+        List<User> users = new ArrayList<>();
         db = databaseHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE, null);
-        SimpleCursorAdapter adapter = new SimpleCursorAdapter(
-                ctx,
-                R.layout.list_item,
-                cursor,
-                new String[]{DatabaseHelper.COLUMN_NAME, DatabaseHelper.COLUMN_LASTNAME, DatabaseHelper.COLUMN_YEAR},
-                new int[]{R.id.txt1, R.id.txt2, R.id.txt3},
-                0);
-        return adapter;
+        Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE + " ;", null);
+
+        while (cursor.moveToNext()) {
+            User user = new User();
+            String id = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID));
+            String name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NAME));
+            String lastname = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LASTNAME));
+            String year = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_YEAR));
+            user.setId(id);
+            user.setName(name);
+            user.setLastname(lastname);
+            user.setYear(year);
+            users.add(user);
+        }
+
+        return users;
     }
 
     public static void updateById(String[] params, SQLiteDatabase db, long userId) {
